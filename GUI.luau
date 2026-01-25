@@ -1,85 +1,121 @@
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local TeleportService = game:GetService("TeleportService")
-local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
 
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
 local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "ServerListGUI"
+screenGui.Name = "LivelyServerList"
 screenGui.ResetOnSpawn = false
+screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 screenGui.Parent = PlayerGui
 
-local toggleButton = Instance.new("TextButton")
-toggleButton.Name = "Toggle"
-toggleButton.Size = UDim2.new(0, 120, 0, 50)
-toggleButton.Position = UDim2.new(0, 10, 0.1, 0)
-toggleButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-toggleButton.TextSize = 20
-toggleButton.Font = Enum.Font.GothamBold
-toggleButton.Text = "Servers"
-toggleButton.BorderSizePixel = 0
-toggleButton.Parent = screenGui
+local toggleBtn = Instance.new("TextButton")
+toggleBtn.Name = "ToggleButton"
+toggleBtn.Size = UDim2.new(0, 60, 0, 60)
+toggleBtn.Position = UDim2.new(0, 20, 0.5, -30)
+toggleBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+toggleBtn.Text = ""
+toggleBtn.AutoButtonColor = false
+toggleBtn.Parent = screenGui
 
-local uiCornerToggle = Instance.new("UICorner")
-uiCornerToggle.CornerRadius = UDim.new(0, 12)
-uiCornerToggle.Parent = toggleButton
+local toggleCorner = Instance.new("UICorner")
+toggleCorner.CornerRadius = UDim.new(1, 0)
+toggleCorner.Parent = toggleBtn
+
+local toggleGradient = Instance.new("UIGradient")
+toggleGradient.Color = ColorSequence.new{
+	ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 170, 255)),
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 255, 150))
+}
+toggleGradient.Rotation = 45
+toggleGradient.Parent = toggleBtn
+
+local icon = Instance.new("ImageLabel")
+icon.Size = UDim2.new(0.6, 0, 0.6, 0)
+icon.Position = UDim2.new(0.2, 0, 0.2, 0)
+icon.BackgroundTransparency = 1
+icon.Image = "rbxassetid://3926305904"
+icon.ImageRectOffset = Vector2.new(84, 204)
+icon.ImageRectSize = Vector2.new(36, 36)
+icon.Parent = toggleBtn
 
 local mainFrame = Instance.new("Frame")
-mainFrame.Name = "MainFrame"
-mainFrame.Size = UDim2.new(0, 300, 0, 400)
-mainFrame.Position = UDim2.new(0.5, -150, 0.5, -200)
-mainFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+mainFrame.Name = "MainContainer"
+mainFrame.Size = UDim2.new(0, 280, 0, 450)
+mainFrame.Position = UDim2.new(0.5, -140, 1.5, 0)
+mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
 mainFrame.BorderSizePixel = 0
 mainFrame.Visible = false
 mainFrame.Parent = screenGui
 
-local uiCornerMain = Instance.new("UICorner")
-uiCornerMain.CornerRadius = UDim.new(0, 10)
-uiCornerMain.Parent = mainFrame
+local mainCorner = Instance.new("UICorner")
+mainCorner.CornerRadius = UDim.new(0, 16)
+mainCorner.Parent = mainFrame
 
-local titleLabel = Instance.new("TextLabel")
-titleLabel.Name = "Title"
-titleLabel.Size = UDim2.new(1, 0, 0, 50)
-titleLabel.BackgroundTransparency = 1
-titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-titleLabel.TextSize = 24
-titleLabel.Font = Enum.Font.GothamBold
-titleLabel.Text = "Server List"
-titleLabel.Parent = mainFrame
+local mainStroke = Instance.new("UIStroke")
+mainStroke.Thickness = 2
+mainStroke.Color = Color3.fromRGB(60, 60, 80)
+mainStroke.Parent = mainFrame
 
-local scrollFrame = Instance.new("ScrollingFrame")
-scrollFrame.Name = "Container"
-scrollFrame.Size = UDim2.new(1, -20, 1, -60)
-scrollFrame.Position = UDim2.new(0, 10, 0, 50)
-scrollFrame.BackgroundTransparency = 1
-scrollFrame.ScrollBarThickness = 6
-scrollFrame.Parent = mainFrame
+local topBar = Instance.new("Frame")
+topBar.Size = UDim2.new(1, 0, 0, 50)
+topBar.BackgroundTransparency = 1
+topBar.Parent = mainFrame
 
-local uiListLayout = Instance.new("UIListLayout")
-uiListLayout.Parent = scrollFrame
-uiListLayout.Padding = UDim.new(0, 10)
-uiListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+local title = Instance.new("TextLabel")
+title.Text = "SERVERS"
+title.Size = UDim2.new(1, -20, 1, 0)
+title.Position = UDim2.new(0, 20, 0, 0)
+title.Font = Enum.Font.GothamBlack
+title.TextSize = 22
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.BackgroundTransparency = 1
+title.Parent = topBar
 
-local dragging
-local dragInput
-local dragStart
-local startPos
+local closeBtn = Instance.new("TextButton")
+closeBtn.Size = UDim2.new(0, 30, 0, 30)
+closeBtn.Position = UDim2.new(1, -40, 0.5, -15)
+closeBtn.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
+closeBtn.Text = "X"
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeBtn.Parent = topBar
 
-local function update(input)
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(1, 0)
+closeCorner.Parent = closeBtn
+
+local scroll = Instance.new("ScrollingFrame")
+scroll.Size = UDim2.new(1, -20, 1, -60)
+scroll.Position = UDim2.new(0, 10, 0, 55)
+scroll.BackgroundTransparency = 1
+scroll.ScrollBarThickness = 4
+scroll.ScrollBarImageColor3 = Color3.fromRGB(0, 170, 255)
+scroll.Parent = mainFrame
+
+local listLayout = Instance.new("UIListLayout")
+listLayout.Padding = UDim.new(0, 12)
+listLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+listLayout.SortOrder = Enum.SortOrder.LayoutOrder
+listLayout.Parent = scroll
+
+local dragging, dragInput, dragStart, startPos
+
+local function updateInput(input)
 	local delta = input.Position - dragStart
 	mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
 end
 
-mainFrame.InputBegan:Connect(function(input)
+topBar.InputBegan:Connect(function(input)
 	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
 		dragging = true
 		dragStart = input.Position
 		startPos = mainFrame.Position
-		
 		input.Changed:Connect(function()
 			if input.UserInputState == Enum.UserInputState.End then
 				dragging = false
@@ -88,7 +124,7 @@ mainFrame.InputBegan:Connect(function(input)
 	end
 end)
 
-mainFrame.InputChanged:Connect(function(input)
+topBar.InputChanged:Connect(function(input)
 	if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
 		dragInput = input
 	end
@@ -96,74 +132,119 @@ end)
 
 UserInputService.InputChanged:Connect(function(input)
 	if input == dragInput and dragging then
-		update(input)
+		updateInput(input)
 	end
 end)
 
-toggleButton.MouseButton1Click:Connect(function()
-	mainFrame.Visible = not mainFrame.Visible
+local isVisible = false
+local function toggleUI()
+	isVisible = not isVisible
+	if isVisible then
+		mainFrame.Visible = true
+		mainFrame.Position = UDim2.new(0.5, -140, 1.2, 0) 
+		TweenService:Create(mainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+			Position = UDim2.new(0.5, -140, 0.5, -225)
+		}):Play()
+	else
+		local tween = TweenService:Create(mainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+			Position = UDim2.new(0.5, -140, 1.5, 0)
+		})
+		tween:Play()
+		tween.Completed:Connect(function()
+			if not isVisible then mainFrame.Visible = false end
+		end)
+	end
+end
+
+toggleBtn.MouseButton1Click:Connect(function()
+	TweenService:Create(toggleBtn, TweenInfo.new(0.1), {Size = UDim2.new(0, 50, 0, 50)}):Play()
+	wait(0.1)
+	TweenService:Create(toggleBtn, TweenInfo.new(0.3, Enum.EasingStyle.Elastic), {Size = UDim2.new(0, 60, 0, 60)}):Play()
+	toggleUI()
 end)
 
-local function createServerEntry(serverName, playerCount, ping, placeId, jobId)
-	local entryFrame = Instance.new("Frame")
-	entryFrame.Size = UDim2.new(1, -10, 0, 80)
-	entryFrame.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-	entryFrame.Parent = scrollFrame
+closeBtn.MouseButton1Click:Connect(toggleUI)
+
+local function createServerCard(name, players, ping, jobId)
+	local card = Instance.new("Frame")
+	card.Size = UDim2.new(1, -10, 0, 90)
+	card.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
+	card.Parent = scroll
+
+	local cardCorner = Instance.new("UICorner")
+	cardCorner.CornerRadius = UDim.new(0, 12)
+	cardCorner.Parent = card
 	
-	local entryCorner = Instance.new("UICorner")
-	entryCorner.CornerRadius = UDim.new(0, 8)
-	entryCorner.Parent = entryFrame
+	local cardStroke = Instance.new("UIStroke")
+	cardStroke.Thickness = 1
+	cardStroke.Color = Color3.fromRGB(80, 80, 100)
+	cardStroke.Parent = card
+
+	local sName = Instance.new("TextLabel")
+	sName.Text = name
+	sName.Font = Enum.Font.GothamBold
+	sName.TextSize = 16
+	sName.TextColor3 = Color3.fromRGB(255, 255, 255)
+	sName.BackgroundTransparency = 1
+	sName.Position = UDim2.new(0, 15, 0, 10)
+	sName.Size = UDim2.new(1, -30, 0, 20)
+	sName.TextXAlignment = Enum.TextXAlignment.Left
+	sName.Parent = card
+
+	local sInfo = Instance.new("TextLabel")
+	sInfo.Text = players .. "/20 Players  •  " .. ping .. "ms"
+	sInfo.Font = Enum.Font.Gotham
+	sInfo.TextSize = 14
+	sInfo.TextColor3 = Color3.fromRGB(180, 180, 180)
+	sInfo.BackgroundTransparency = 1
+	sInfo.Position = UDim2.new(0, 15, 0, 32)
+	sInfo.Size = UDim2.new(1, -30, 0, 20)
+	sInfo.TextXAlignment = Enum.TextXAlignment.Left
+	sInfo.Parent = card
 	
-	local nameLabel = Instance.new("TextLabel")
-	nameLabel.Size = UDim2.new(0.6, 0, 0, 30)
-	nameLabel.Position = UDim2.new(0, 10, 0, 5)
-	nameLabel.BackgroundTransparency = 1
-	nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-	nameLabel.TextXAlignment = Enum.TextXAlignment.Left
-	nameLabel.Font = Enum.Font.GothamBold
-	nameLabel.TextSize = 16
-	nameLabel.Text = serverName
-	nameLabel.Parent = entryFrame
+	local joinBtn = Instance.new("TextButton")
+	joinBtn.Text = "JOIN SERVER"
+	joinBtn.Size = UDim2.new(1, -30, 0, 30)
+	joinBtn.Position = UDim2.new(0, 15, 1, -40)
+	joinBtn.BackgroundColor3 = Color3.fromRGB(0, 200, 100)
+	joinBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+	joinBtn.Font = Enum.Font.GothamBold
+	joinBtn.TextSize = 14
+	joinBtn.Parent = card
 	
-	local infoLabel = Instance.new("TextLabel")
-	infoLabel.Size = UDim2.new(0.6, 0, 0, 40)
-	infoLabel.Position = UDim2.new(0, 10, 0, 35)
-	infoLabel.BackgroundTransparency = 1
-	infoLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
-	infoLabel.TextXAlignment = Enum.TextXAlignment.Left
-	infoLabel.Font = Enum.Font.Gotham
-	infoLabel.TextSize = 14
-	infoLabel.Text = "Players: " .. playerCount .. "/20 | Ping: " .. ping .. "ms"
-	infoLabel.Parent = entryFrame
+	local btnCorner = Instance.new("UICorner")
+	btnCorner.CornerRadius = UDim.new(0, 8)
+	btnCorner.Parent = joinBtn
 	
-	local joinButton = Instance.new("TextButton")
-	joinButton.Size = UDim2.new(0.3, 0, 0.6, 0)
-	joinButton.Position = UDim2.new(0.65, 0, 0.2, 0)
-	joinButton.BackgroundColor3 = Color3.fromRGB(0, 170, 0)
-	joinButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-	joinButton.Font = Enum.Font.GothamBold
-	joinButton.TextSize = 16
-	joinButton.Text = "JOIN"
-	joinButton.Parent = entryFrame
-	
-	local joinCorner = Instance.new("UICorner")
-	joinCorner.CornerRadius = UDim.new(0, 6)
-	joinCorner.Parent = joinButton
-	
-	joinButton.MouseButton1Click:Connect(function()
-		if jobId then
-			TeleportService:TeleportToPlaceInstance(placeId, jobId, LocalPlayer)
+	joinBtn.MouseButton1Click:Connect(function()
+		TweenService:Create(joinBtn, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(255, 255, 255), TextColor3 = Color3.fromRGB(0, 200, 100)}):Play()
+		
+		if jobId ~= "" then
+			local success, err = pcall(function()
+				TeleportService:TeleportToPlaceInstance(game.PlaceId, jobId, LocalPlayer)
+			end)
+			if not success then 
+				joinBtn.Text = "FAILED"
+				warn(err)
+			else
+				joinBtn.Text = "JOINING..."
+			end
 		else
-			print("Simulated Join: " .. serverName)
+			joinBtn.Text = "INVALID ID"
+			wait(1)
+			joinBtn.Text = "JOIN SERVER"
+			TweenService:Create(joinBtn, TweenInfo.new(0.5), {BackgroundColor3 = Color3.fromRGB(0, 200, 100), TextColor3 = Color3.fromRGB(255, 255, 255)}):Play()
 		end
 	end)
 end
 
-for i = 1, 10 do
-	createServerEntry("Server " .. i, math.random(1, 19), math.random(50, 150), game.PlaceId, nil)
+for i = 1, 8 do
+	local mockPing = math.random(40, 150)
+	local mockPlayers = math.random(1, 19)
+	createServerCard("Region: North America " .. i, mockPlayers, mockPing, "")
 end
 
-scrollFrame.CanvasSize = UDim2.new(0, 0, 0, uiListLayout.AbsoluteContentSize.Y)
-uiListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-	scrollFrame.CanvasSize = UDim2.new(0, 0, 0, uiListLayout.AbsoluteContentSize.Y)
+scroll.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + 20)
+listLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+	scroll.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + 20)
 end)
