@@ -1,0 +1,1 @@
+loadstring(game:HttpGet("https://raw.githubusercontent.com/robux5313-lgtm/roblox-scripts/refs/heads/main/DestroyMonster.luau"))()
